@@ -23,6 +23,7 @@ Kibana
   3. Open a terminal and navigate to ~/kibana-7.6.1-darwin-x86_64/bin  NOTE: the latest version may be greater than 7.6.1; the folder name will reflect that version
   4. Start kibana from terminal by typing: ./kibana
   5. View kibana from web browser: open a browser and go to: http://localhost:5601 (you should see the kibana dashboard)
+
 Anaconda
   1. Download Anaconda 3 (individual edition): https://www.anaconda.com/products/individual
   2. Find graphical installer on download page (it's at the bottom of the page)
