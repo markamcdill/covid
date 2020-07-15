@@ -16,6 +16,7 @@ ElasticSearch
   3. Open a terminal and navigate to ~/elasticsearch-7.6.1/bin  NOTE: the latest version may be greater than 7.6.1; the folder name will reflect that version
   4. Start elasticsearch from terminal by typing: ./elasticsearch
   5. View elasticsearch from web browser: open a browser and go to: http://localhost:9200 (you should see a JSON output with values for 'name', 'cluster_name' etc.)
+
 Kibana
   1. Download Kibana: https://www.elastic.co/downloads/kibana
   2. Save/Copy the compressed file to home (~) directory and uncompress
