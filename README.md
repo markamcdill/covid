@@ -35,6 +35,7 @@ Anaconda
 # App Execution
   - open main.py
   - Comment out all lines (# == comment) then uncomment (remove #) the following three lines
+  
     --  covid19 = covid.Covid('covid-19')
         covid19.curate()
         covid19.doData(action='insertLatest', doc_type='_doc')  # retrieve and insert latest covid data
