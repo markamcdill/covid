@@ -33,19 +33,19 @@ class ES_Client:
 
         self.q = kwargs['q']
         try:
-            kwargs['return_size']
+            var = kwargs['return_size']
             self.return_size = int(kwargs['return_size'])
         except:
             pass  # use default value
 
         try:
-            kwargs['scroll']
+            var = kwargs['scroll']
             self.scroll = kwargs['scroll']
         except:
             pass  # use default value
 
         try:
-            kwargs['scrollSize']
+            var = kwargs['scrollSize']
             self.scrollSize = kwargs['scrollSize']
         except:
             pass  # use default value

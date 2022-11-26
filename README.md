@@ -1,45 +1,89 @@
 # covid
-Simple python data science project to track covid stats
 
-# Dependencies
-  - ElasticSearch
-  - Kibana
-  
-# Platform
-  - Anaconda 3 (or latest); comes with Python 3.7 (or latest)
-  - Pycharm (install latest version)
-  
-# Install and Run
-ElasticSearch
-  1. Download ElasticSearch: https://www.elastic.co/downloads/elasticsearch
-  2. Save/Copy the compressed file to home (~) directory and uncompress
-  3. Open a terminal and navigate to ~/elasticsearch-7.6.1/bin  NOTE: the latest version may be greater than 7.6.1; the folder name will reflect that version
-  4. Start elasticsearch from terminal by typing: ./elasticsearch
-  5. View elasticsearch from web browser: open a browser and go to: http://localhost:9200 (you should see a JSON output with values for 'name', 'cluster_name' etc.)
+Application Entry Point: main.py
 
-Kibana
-  1. Download Kibana: https://www.elastic.co/downloads/kibana
-  2. Save/Copy the compressed file to home (~) directory and uncompress
-  3. Open a terminal and navigate to ~/kibana-7.6.1-darwin-x86_64/bin  NOTE: the latest version may be greater than 7.6.1; the folder name will reflect that version
-  4. Start kibana from terminal by typing: ./kibana
-  5. View kibana from web browser: open a browser and go to: http://localhost:5601 (you should see the kibana dashboard)
+ **Function**: client interface to local elasticsearch instance
+ 
+   **Specific Functions:**
+   
+         On __init__
+         
+           Retrieve covid data via URL request and place in a global array as json documents
+           
+           Instantiate elasticsearch client with index configuration
+           
+         On call
+         
+           doData()
+                primary method responds to action parameter
+         
+           setKwargs()
+           
+               called when doData() is called
+               
+               analyze keyword arguments and respond to user if incorrect
+               
+           setStartDate()
+           
+               called when action == insertLatest
+               
+               queries and retrieves the latest date found in covid data
+               
+                   only data after this date is inserted into elasticsearch instance
+                   
+           Retrieve latest data from URL and insert 'differential' into local index
+           
+           Delete an index
+           
+           Delete a specific document by id
+           
+           Delete a range of documents (from-to dates)
+           
+           Execute scroll queries
+           
+               configure return size (optional)
+               
+               only need to pass a query name (name looked up in queries dictionary on ES_Client
+               
+           Export data formatted as:
+           
+               Kibana.json (can be imported by Kibana import tool)
+               
+               Elasticsearch.json (standard elasticsearch format)
+               
+               CSV (with headers)
+               
 
-Anaconda
-  1. Download Anaconda 3 (individual edition): https://www.anaconda.com/products/individual
-  2. Find graphical installer on download page (it's at the bottom of the page)
-  3. Follow graphical installer instructions; NOTE: sometimes older versions of Python (v2) conflict with Anaconda 3 install -- remove Python v2 from system)
-  
-# Code Base (the app)
-  - Clone into ~/PycharmProjects folder (folder created when Anaconda installed)
-
-# App Execution
-  - open main.py
-  - Comment out all lines (# == comment) then uncomment (remove #) the following three lines
-  
-    1. covid19 = covid.Covid('covid-19')
-    2. covid19.curate()
-    3. covid19.doData(action='insertLatest', doc_type='_doc')  # retrieve and insert latest covid data
+   **Input Params:**
+           action (required)
+           
+            valid actions
+            
+               insertLatest: retrieve and insert the latest covid data
+               
+               deleteIndex:  delete the default index defined by the global index variable
+               
+               deleteDoc: delete a single document (doc_id required)
+               
+               deleteDocs: delete multiple documents defined by date range 'frm - to' (will delete all documents if no 'frm-to' date range provided)
+               
+               query: scroll based query, set return_size to modulate the number of records to returned
+               
+               export: CSV, KI happy json, or elasticsearch standard json
+               
+    Use Cases:
+    
+        covid19 = covid.Covid('covid-19')  # instantiate the covid class and configure the elasticsearch client for the covid-19 instance
+    
+        covid19.doData(action='insertLatest')  # retrieve and insert latest covid data
         
-    -- run main.py
-  
-  
+        covid19.doData(action='deleteIndex')  # delete the default index (covid-19)
+        
+        covid19.doData(action='deleteDocs', frm='20200320',to='20200407')  # delete this range of docs; if no frm/to delete all docs
+        
+        covid19.doData(action='deleteDoc', doc_id='5cc91902e24fad7f218a89c4d57c03ceaf0546ed')  # delete a single document; doc_id required
+        
+        results = covid19.doData(action='query', q='getMaxDate', return_size=1)  # all queries are in the queries dictionary found on ES_Client, call them by name; return_size is optional, defaults to all records
+        
+        covid19.doData(action='export', target='CSV', fqp='myCSV')  # target types: CSV, KI, ES; fqp can be any fully qualified path (dir/filename), if blank, goes to default directory and file name
+

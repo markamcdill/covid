@@ -1,12 +1,13 @@
 import os
 import json
 import csv
+import sys
+
 import requests
 import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from DataLayer.ElasticSearch.ES_Client import ES_Client
+from app.dao.ES_Client import ES_Client
 
 
 # Function: client interface to local elasticsearch instance
@@ -94,32 +95,32 @@ class Covid:
     def __init__(self, idx):
         self.idx = idx  # elasticsearch index
         self.esClient = ES_Client(self.idx)  # elasticsearch client (configured with index)
-        self.data = requests.get('https://covidtracking.com/api/v1/states/daily.json').content  # retrieve the latest data
+        self.data = requests.get('https://api.covidtracking.com/v1/us/daily.json').content  # retrieve the latest data
+        # print(self.data)
         self.covidAry = json.loads(self.data)  # place in array of JSON objects
-    #   https://covidtracking.com/api/states/daily
 
     def setKwargs(self, **kwargs):  # unpack and analyze keyword arguments and set passed == True/False accordingly; if False, stop execution and print message (self.msg) to user
         passed = True
         try:
-            kwargs['action']
+            var = kwargs['action']
             self.action = kwargs['action']
             if self.action == 'query':
                 try:
-                    kwargs['q']
+                    var = kwargs['q']
                     self.q = kwargs['q']
                 except:
                     self.msg += "query param cannot be blank\n"
                     passed = False
 
                 try:
-                    kwargs['return_size']
+                    var = kwargs['return_size']
                     self.return_size = kwargs['return_size']
                 except:
                     pass
 
             elif self.action == 'deleteDoc':
                 try:
-                    kwargs['doc_id']
+                    var = kwargs['doc_id']
                     self.doc_id = kwargs['doc_id']
                 except:
                     self.msg += "doc_id param cannot be blank\n"
@@ -127,7 +128,7 @@ class Covid:
 
             elif self.action == 'insertLatest':
                 try:
-                    kwargs['doc_type']
+                    var = kwargs['doc_type']
                     self.doc_type = kwargs['doc_type']
                 except:
                     self.msg += "you must pass a doc_type\n"
@@ -135,9 +136,9 @@ class Covid:
 
             elif self.action == 'deleteDocs':
                 try:
-                    kwargs['frm']
+                    var = kwargs['frm']
                     self.frm = kwargs['frm']
-                    kwargs['to']
+                    var = kwargs['to']
                     self.to = kwargs['to']
                 except:
                     self.msg += "cannot determine date range between " + self.frm + " and " + self.to + "\n"
@@ -145,19 +146,19 @@ class Covid:
 
             elif self.action == 'export':
                 try:
-                    kwargs['target']
+                    var = kwargs['target']
                     self.target = kwargs['target']
                 except:
                     self.msg += "target param cannot be blank\n"
                     passed = False
                 try:
-                    kwargs['fqp']
+                    var = kwargs['fqp']
                     self.fqp = kwargs['fqp']
                 except:
                     self.msg += "fqp param cannot be blank\n"
                     passed = False
                 try:
-                    kwargs['frm']
+                    var = kwargs['frm']
                     self.fromDate = kwargs['frm']
                 except:  # fromDate optional
                     pass
@@ -298,7 +299,8 @@ class Covid:
     def curate(self):
         tmpAry = []
         covidNewAry = []
-        with open('DataLayer/Data/source/populationByState_2019.csv') as statePop:
+        print("sys.path: ", sys.path)
+        with open('/covid/data/source/populationByState_2019.csv') as statePop:
             reader = csv.DictReader(statePop)
             for rows in reader:
                 for doc in self.covidAry:
@@ -310,14 +312,14 @@ class Covid:
                         doc['dateTrack'] = y + '-' + m + '-' + d + 'T12:00:00Z'
 
                         try:
-                            doc['deathIncrease']
+                            var = doc['deathIncrease']
                             if int(doc['deathIncrease']) < 0:  # at times states will publish a negative death increase to adjust for reporting errors; kibana throws a wobbly when this value is < 0
                                 doc['deathIncrease'] = 0  # set values < 0 to 0
                         except:
                             doc['deathIncrease'] = 0  # deathIncrease value did not exist or was NoneType, set it to 0
 
                         try:
-                            doc['death'] > 0
+                            var = doc['death'] > 0
                             death = int(doc['death'])
                         except:
                             death = 0
@@ -327,22 +329,22 @@ class Covid:
                             doc['deathPerCapita'] = 0
 
                         try:
-                            doc['hospitalizedCumulative']
+                            var = doc['hospitalizedCumulative']
                             doc['hospitalizedPerCapita'] = int(doc['hospitalizedCumulative']) / int(rows['population']) * 10000
                         except:
                             doc['hospitalizedPerCapita'] = 0
 
                         try:
-                            doc['inIcuCumulative']
+                            var = doc['inIcuCumulative']
                             doc['icuPerCapita'] = int(doc['inIcuCumulative']) / int(rows['population']) * 10000
                         except:
                             doc['icuPerCapita'] = 0
 
                         try:
-                            doc['positive']
+                            var = doc['positive']
                             try:
-                                death > 0
-                                int(doc['positive']) > 0
+                                var = death > 0
+                                var = int(doc['positive']) > 0
                                 doc['mortalityRate'] = round(death / int(doc['positive']), 3) * 100
                                 doc['survivalRate'] = round(100 - int(doc['mortalityRate']), 3)
                             except:
@@ -367,7 +369,7 @@ class Covid:
     def doLR(self, state):
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
-        covidDF = pd.read_json('DataLayer/Data/export/currentCovid.json')
+        covidDF = pd.read_json('data/export/currentCovid.json')
         stateDF = covidDF.loc[covidDF['state'] == state]
         print(stateDF)
         xVals = pd.Series([num+1 for num in range(len(stateDF))])  # create enumerated Series representing each day for the x axis (1...number of days); add 1 to num so enumeration starts at 1
