@@ -9,7 +9,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from app.dao.ES_Client import ES_Client
 
-
 # Function: client interface to local elasticsearch instance
 #   Specific Functions:
 #         On __init__
@@ -299,12 +298,11 @@ class Covid:
     def curate(self):
         tmpAry = []
         covidNewAry = []
-        print("sys.path: ", sys.path)
-        with open('/covid/data/source/populationByState_2019.csv') as statePop:
+        with open('data/source/populationByState_2019.csv') as statePop:
             reader = csv.DictReader(statePop)
             for rows in reader:
                 for doc in self.covidAry:
-                    if rows['digraph'] == doc['state']:
+                    if rows['digraph'] == doc['states']:
                         dateSrt = str(doc['date'])
                         y = dateSrt[0:4]
                         m = dateSrt[4:6]
@@ -402,7 +400,7 @@ class Covid:
 
     def getDFData(self, df, rows, cols):
         if not df:
-            df = pd.read_json('DataLayer/Data/export/currentCovid.json')
+            df = pd.read_json('data/export/currentCovid.json')
         print(df.iloc[self.getRowIndices(df, rows), self.getColIndices(df, cols)])
         return df.iloc[self.getRowIndices(df, rows), self.getColIndices(df, cols)]
 
